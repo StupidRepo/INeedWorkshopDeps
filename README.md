@@ -11,7 +11,8 @@ A Content Warning Workshop mod which allows other Workshop mods to have dependen
 5. Relaunch the game to load the mods you just subscribed to, and you're done!
 
 *"Why not use just normal Steam workshop dependencies?"*
-- Good question! The game loads Steam mods in a random order. So, let's say you have two mods. Mod A depends on Mod B. 
+
+Good question! The game loads Steam mods in a random order. So, let's say you have two mods. Mod A depends on Mod B. 
    If Mod A loads before Mod B, Mod A will crash because it can't find Mod B.
    This mod fixes that by making sure all dependencies are loaded before the mod that depends on them.
    It also makes sure that the user is subscribed to all dependencies before loading the mod that depends on them, just like normal Steam UI!
