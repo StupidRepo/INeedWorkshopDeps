@@ -1,7 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "INeedWorkshopDeps", "INeedWorkshopDeps.csproj", "{E4640080-28D3-4545-9560-924950B00215}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "INeedWorkshopDeps", "INeedWorkshopDeps\INeedWorkshopDeps.csproj", "{E4640080-28D3-4545-9560-924950B00215}"
 EndProject
+# Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "INeedWorkshopDeps.Copier", "INeedWorkshopDeps.Copier\INeedWorkshopDeps.Copier.csproj", "{844FF026-A496-4864-9186-E0163D7A0C97}"
+# EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
