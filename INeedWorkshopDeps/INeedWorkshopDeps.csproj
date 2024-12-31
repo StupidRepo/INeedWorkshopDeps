@@ -24,6 +24,9 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="scmdrelease\" />
     </ItemGroup> 
 
     <Target Name="CopyOutputFileToGame" AfterTargets="Build" Condition="$(Configuration) != 'SteamWCopy'">
@@ -36,6 +39,7 @@
     
     <Target Name="SteamRelease" AfterTargets="Build" Condition="$(Configuration) == 'Release'">
         <Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll" DestinationFiles="$(MSBuildProjectDirectory)\scmdrelease\$(AssemblyName).preload.dll" Retries="60"/>
+        <Copy SourceFiles="preview.png" DestinationFolder="$(MSBuildProjectDirectory)\scmdrelease\" Retries="60"/>
     </Target>
 
     <Target Name="CopyOutputFileToGameRelease" AfterTargets="Build" Condition="$(Configuration) == 'SteamWCopy'">

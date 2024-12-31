@@ -10,10 +10,13 @@ namespace INeedWorkshopDeps;
 
 public static class Utils
 {
-	public static void DoSteamWorkshopDownload()
+	private static void DoSteamWorkshopDownload()
 	{
-		foreach (var erroredMod in Preload.erroredMods)
-			SteamUGC.SubscribeItem(erroredMod.Item1);
+		foreach (var missing in Preload.erroredMods.SelectMany(mod => mod.Item2))
+		{
+			Debug.LogWarning("Subscribing to missing dependency: " + missing.m_rgchTitle);
+			SteamUGC.SubscribeItem(missing.m_nPublishedFileId);
+		}
 	}
 
 	public static async Task<List<SteamUGCDetails_t>> AskSteamToResolveDeps(List<ContentWarningDependency> neededDeps,

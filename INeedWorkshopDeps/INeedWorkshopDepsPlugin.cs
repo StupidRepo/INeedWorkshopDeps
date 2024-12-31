@@ -1,6 +1,6 @@
 ﻿namespace INeedWorkshopDeps;
 
-[ContentWarningPlugin("stupidrepo.INeedWorkshopDeps", "0.3", true)]
+[ContentWarningPlugin("stupidrepo.INeedWorkshopDeps", "0.4", true)]
 public class INeedWorkshopDepsPlugin
 {
 	
