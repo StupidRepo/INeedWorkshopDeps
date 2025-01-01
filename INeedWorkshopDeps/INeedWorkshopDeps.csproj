@@ -5,16 +5,15 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
-        <NoWarn>8618;MSB3026;8600;8625</NoWarn>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
         <Configurations>Debug;Release;SteamWCopy</Configurations>
         <Platforms>AnyCPU</Platforms>
+        <CWDir Condition=" '$(CWDir)' == '' ">C:\Program Files (x86)\Steam\steamapps\common\Content Warning</CWDir>
     </PropertyGroup>
 
     <ItemGroup>
-        <Reference Include="$(CWDir)\Content Warning_Data\Managed\*.dll" Private="false" Publicize="True"/>
-        <!--        <Reference Include="$(CWDir)\BepInEx\core\Bep*.dll" Private="false" Publicize="True" />-->
+        <Reference Include="$(CWDir)\Content Warning_Data\Managed\*.dll" Private="false"/>
     </ItemGroup>
 
     <!-- Use BepInEx's Assembly Publicizer to tell IDEs and the compiler that every field, method, etc. is public, in the game assemblies -->
@@ -28,16 +27,13 @@
     <Target Name="CopyOutputFileToGame" AfterTargets="Build" Condition="$(Configuration) != 'SteamWCopy'">
         <Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll" DestinationFiles="$(CWDir)\Plugins\$(AssemblyName)\$(AssemblyName).preload.dll" Retries="60"/>
         <Copy SourceFiles="preview.png" DestinationFolder="$(CWDir)\Plugins\$(AssemblyName)\" Retries="60"/>
-        <Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll" DestinationFolder="C:\Users\Brad\RiderProjects\ExampleDepPlugin\Libs" Retries="60"/>
-        <Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll" DestinationFolder="C:\Users\Brad\RiderProjects\Landmines\Libs" Retries="60"/>
-<!--        <Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll" DestinationFolder="$(UnityPluginsDir)"/>-->
     </Target>
     
     <Target Name="SteamRelease" AfterTargets="Build" Condition="$(Configuration) == 'Release'">
         <Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll" DestinationFiles="$(MSBuildProjectDirectory)\scmdrelease\$(AssemblyName).preload.dll" Retries="60"/>
         <Copy SourceFiles="preview.png" DestinationFolder="$(MSBuildProjectDirectory)\scmdrelease\" Retries="60"/>
     </Target>
-
+    
     <Target Name="CopyOutputFileToGameRelease" AfterTargets="Build" Condition="$(Configuration) == 'SteamWCopy'">
         <Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll" DestinationFiles="C:\Program Files (x86)\Steam\steamapps\workshop\content\2881650\3396439930\$(AssemblyName).preload.dll" Retries="60"/>
     </Target>
