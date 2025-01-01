@@ -12,11 +12,10 @@ namespace INeedWorkshopDeps;
 public class Preload
 {
 	private static readonly List<Tuple<PublishedFileId_t, List<ContentWarningDependency>, string>>
-		dependers = new(); // a list of: <The mod that depends on stuff, List<The things it depends on, but we don't know if loaded>, GUID of depender>
+		dependers = []; // a list of: <The mod that depends on stuff, List<The things it depends on, but we don't know if loaded>, GUID of depender>
 
-	public static List<Tuple<PublishedFileId_t, List<SteamUGCDetails_t>, string>>
-		erroredMods =
-			new(); // a list of: <The mod that depends on stuff, List<Missing dependencies>, GUID of depender>
+	public static readonly List<Tuple<PublishedFileId_t, List<SteamUGCDetails_t>, string>>
+		erroredMods = []; // a list of: <The mod that depends on stuff, List<Missing dependencies>, GUID of depender>
 	
 	public static StringBuilder extraErrors = new();
 
