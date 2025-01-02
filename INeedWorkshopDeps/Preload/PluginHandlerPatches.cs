@@ -202,33 +202,27 @@ public class PluginHandlerPatches {
             Logger.Log("Mods checked");
             
             Logger.Log("Showing modals if needed");
-            var didPressSubToAll = false;
             missingModsToWorkshopDeps.ForEach(kv =>
             {
                 var depender = kv.Key;
                 var missingDeps = kv.Value;
+                var isLast = (depender == missingModsToWorkshopDeps.Last().Key);
                 ToastUtilities.EnqueueToast(
                     SubscribedItemsDetails[new PublishedFileId_t(depender)].m_rgchTitle,
                     $"{SubscribedItemsDetails[new PublishedFileId_t(depender)].m_rgchTitle} is missing dependencies:\n" + string.Join("\n", missingDeps.Select(dep => $"{dep.m_rgchTitle} (ID: {dep.m_nPublishedFileId})"))
                     + "\n\nYou can either:\n- Ignore this and the mod will not be loaded\n- Subscribe to the missing mods",
                     [
-                        new ModalOption("Ignore"),
-                        new ModalOption("Subscribe to all", () =>
+                        new ModalOption("Ignore" + (isLast ? " and don't restart" : "")),
+                        new ModalOption("Subscribe to missing" + (isLast ? " and restart" : ""), () =>
                         {
-                            didPressSubToAll = true;
                             missingDeps.ForEach(dep => SteamUGC.SubscribeItem(dep.m_nPublishedFileId));
+                            
+                            // if we are last in the list, restart the game
+                            if (isLast) { RestartGame(); }
                         }),
                     ]
                 );
             });
-            if (didPressSubToAll)
-            {
-                ToastUtilities.EnqueueToast(
-                    "Restart Required",
-                    "Please restart the game to load mods that had missing dependencies",
-                    [new ModalOption("Okay", RestartGame)]
-                );
-            }
 
             Logger.Log("Loading mods");
             var priorityToMods = LoadOrder.OrderBy(kv => kv.Key).ToArray();
