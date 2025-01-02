@@ -1,5 +1,5 @@
 # INeedWorkshopDeps
-A Content Warning Workshop mod which allows other Workshop mods to have dependencies on it.
+A Content Warning mod which allows Steam Workshop mods to have dependencies on other Steam Workshop mods and makes sure they load in order! 
 
 ## How to use as a player
 1. Subscribe to any mod you want. If it uses INeedWorkshopDeps, and the dev of the mod you want is not brain-dead, you
@@ -38,6 +38,8 @@ To see a more detailed explanation of the load order, see the [Load order](#load
       you're subscribed to [INeedWorkshopDeps][inwd]!
     - ![savecont.png](READMEImgs/savecont.png)
     - It should look something like the above when done. You can now press "Save and Continue" to save your changes.
+4. Make sure to also add the mods you depend on in the "Add/Remove Required Items" section if you don't want the user to
+   have to subscribe to them manually when they launch the game.
 
 ### Example
 ```cs
@@ -55,7 +57,6 @@ public class ExampleCWPlugin
 (You can add as many dependencies as you want just by adding more `[ContentWarningDependency]` attributes)
 
 ## Load order
-[.excalidraw file](Diagrams/LoadOrder.excalidraw) or [Excalidraw URL](https://excalidraw.com/#json=Lh_bmIjfW9n4lfo8CpJNa,zB39MNK2B4rpYQ-FwWgDDA)
-![LoadOrder.png](Diagrams/LoadOrder.png)
+TBW
 
 [inwd]: https://steamcommunity.com/sharedfiles/filedetails/?id=3396439930
