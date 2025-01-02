@@ -28,7 +28,7 @@ public class ToastUtilities : MonoBehaviour {
 
 	private void LateUpdate() {
 		if (EnqueuedToasts.Count == 0 || Modal.Instance.Open) { return; }
-		Toast toast = EnqueuedToasts[0];
+		var toast = EnqueuedToasts[0];
 		EnqueuedToasts.RemoveAt(0);
 		ShowToast(toast);
 	}

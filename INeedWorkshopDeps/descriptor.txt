@@ -9,5 +9,5 @@
 	"description"		"INeedWorkshopDeps is a handy mod for workshop mods to depend on other workshop mods with maximum compatibility! :D
 	
 	[url=https://github.com/StupidRepo/INeedWorkshopDeps]GitHub Documentation[/url]"
-	"changenote"		"Update to .3 :P"
+	"changenote"		"Update to 1.0 :P"
 }

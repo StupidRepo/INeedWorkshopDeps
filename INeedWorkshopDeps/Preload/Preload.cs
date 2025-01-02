@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using HarmonyLib;
 
-namespace INeedWorkshopDeps;
+namespace INeedWorkshopDeps.Preload;
 
 public static class Preload {
 	/// <summary>

@@ -13,7 +13,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Reference Include="$(CWDir)\Content Warning_Data\Managed\*.dll" Private="false"/>
+        <Reference Include="$(CWDir)\Content Warning_Data\Managed\*.dll" Private="false" Exclude="$(CWDir)\Content Warning_Data\Managed\Assembly-*.dll"/>
+        <Reference Include="$(CWDir)\Content Warning_Data\Managed\Assembly-*.dll" Publicize="true"/>
     </ItemGroup>
 
     <!-- Use BepInEx's Assembly Publicizer to tell IDEs and the compiler that every field, method, etc. is public, in the game assemblies -->
