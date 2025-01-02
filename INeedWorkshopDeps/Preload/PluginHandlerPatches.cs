@@ -212,8 +212,8 @@ public class PluginHandlerPatches {
                     $"{SubscribedItemsDetails[new PublishedFileId_t(depender)].m_rgchTitle} is missing dependencies:\n" + string.Join("\n", missingDeps.Select(dep => $"{dep.m_rgchTitle} (ID: {dep.m_nPublishedFileId})"))
                     + "\n\nYou can either:\n- Ignore this and the mod will not be loaded\n- Subscribe to the missing mods",
                     [
-                        new ModalOption("Ignore" + (isLast ? " and don't restart" : "")),
-                        new ModalOption("Subscribe to missing" + (isLast ? " and restart" : ""), () =>
+                        new ModalOption("Ignore" + (isLast ? " and don't quit" : "")),
+                        new ModalOption("Subscribe to missing" + (isLast ? " and quit" : ""), () =>
                         {
                             missingDeps.ForEach(dep => SteamUGC.SubscribeItem(dep.m_nPublishedFileId));
                             
@@ -266,7 +266,7 @@ public class PluginHandlerPatches {
         return resolvedMods;
     }
 
-    private static void RestartGame()
+    public static void RestartGame()
     {
         SteamAPI.Shutdown();
         Application.Quit(221); // 221 = random exit code lmao.
