@@ -9,8 +9,9 @@ public static class Preload {
 	/// </summary>
 	// ReSharper disable once UnusedMember.Local
 	private static void PreloadInit() {
-		Logger.Log("Preload has started :P");
+		Logger.Logger.Log("Preload has started :P");
 		Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
-		Logger.Log("Harmony Patches have been applied");
+		
+		Logger.Logger.Log("Harmony patches have been applied");
 	}
 }

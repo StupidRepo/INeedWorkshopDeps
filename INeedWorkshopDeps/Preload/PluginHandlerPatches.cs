@@ -21,6 +21,7 @@ public class PluginHandlerPatches {
     [HarmonyPatch(nameof(PluginHandler.OnItemInstalled))]
     public static bool OnItemInstalled(ItemInstalled_t param) {
         if (HasShownError) { return false; }
+        
         Modal.ShowError("Hot Loading Disabled",
             "INeedWorkshopDeps disables the hot loading of mods.\n" +
             "Please restart the game to load the new mod.\n" +
@@ -69,6 +70,7 @@ public class PluginHandlerPatches {
 
         // load the assembly, check if it has attributes
         var assemblyDefinition = AssemblyDefinition.ReadAssembly(dllPath);
+        // ReSharper disable ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator - you win, Computery!
         foreach (var modules in assemblyDefinition.Modules) {
             foreach (var type in modules.Types) {
                 foreach (var attribute in type.CustomAttributes) {
@@ -119,20 +121,20 @@ public class PluginHandlerPatches {
     public static bool LoadSubbedSWPluginsPatch(List<Plugin> existingPlugins, ref List<PluginSubscribed> __result) {
         __result = [];
         
-        Logger.Log("Loading subscribed steamworks plugins");
+        Logger.Logger.Log("Loading subscribed steamworks plugins");
         
         // Generate dependency tree
-        Logger.Log("Generating dependency tree");
+        Logger.Logger.Log("Generating dependency tree");
         
         var dependencyTree = new Dictionary<ulong, List<ulong>>();
         foreach (var subscribedItem in SubscribedItems) {
             var list = GetDirectDependencies(subscribedItem);
             dependencyTree[(ulong)subscribedItem] = list;
         }
-        Logger.Log("Dependency tree generated");
+        Logger.Logger.Log("Dependency tree generated");
         
         // Resolve dependencies
-        Logger.Log("Resolving dependencies");
+        Logger.Logger.Log("Resolving dependencies");
         foreach (var (modId, value) in dependencyTree) {
             var dependencies = GetAllDependencies(modId, dependencyTree, []);
             var count = dependencies.Count;
@@ -145,7 +147,7 @@ public class PluginHandlerPatches {
             
             ModToAllDependencies[modId] = dependencies;
         }
-        Logger.Log("Dependencies resolved");
+        Logger.Logger.Log("Dependencies resolved");
         
         return false;
     }
@@ -160,7 +162,7 @@ public class PluginHandlerPatches {
     public static async void OurLoadLogic(List<Plugin> existingPlugins, List<PluginSubscribed> __result) {
         try {
             // Get the details of all subscribed items
-            Logger.Log("Getting details of all subscribed items");
+            Logger.Logger.Log("Getting details of all subscribed items");
             var ugcReq = SteamUGC.CreateQueryUGCDetailsRequest(SubscribedItems, (uint)SubscribedItems.Length);
             var ugcResult = await SteamUGC.SendQueryUGCRequest(ugcReq).ToAsync<SteamUGCQueryCompleted_t>();
             for (uint i = 0; i < ugcResult.m_unNumResultsReturned; i++) {
@@ -169,24 +171,24 @@ public class PluginHandlerPatches {
                 }
             }
             SteamUGC.ReleaseQueryUGCRequest(ugcReq);
-            Logger.Log("Details of all subscribed items gotten");
+            Logger.Logger.Log("Details of all subscribed items gotten");
             
             // Get steam to resolve workshop mods
-            Logger.Log("Asking steam to resolve workshop mods");
+            Logger.Logger.Log("Asking steam to resolve workshop mods");
             var resolvedSteamWorkshopDeps = await AskSteamToResolveWorkshopMods(AllDependencies);
             var allMissingWorkshopDeps = resolvedSteamWorkshopDeps.Where(dep => SubscribedItems.All(sub => sub != dep.m_nPublishedFileId)).ToList();
             
-            Logger.Log("Steam resolved workshop mods");
-            Logger.LogWarning(allMissingWorkshopDeps.Count > 0
+            Logger.Logger.Log("Steam resolved workshop mods");
+            Logger.Logger.LogWarning(allMissingWorkshopDeps.Count > 0
                 ? $"Missing dependencies: {string.Join(", ", allMissingWorkshopDeps.Select(dep => dep.m_rgchTitle))}"
                 : "No missing dependencies");            
 
             // Check if the mods are subscribed to
-            Logger.Log("Checking each subscribed mod to see if it requires deps");
+            Logger.Logger.Log("Checking each subscribed mod to see if it requires deps");
             var missingModsToWorkshopDeps = new Dictionary<ulong, List<SteamUGCDetails_t>>();
             SubscribedItems.ForEach(mod =>
             {
-                Logger.Log($"Checking mod {mod}");
+                Logger.Logger.Log($"Checking mod {mod}");
                 // for each depender requiring dependencies, check if the dependencies are missing
                 // if there are, add it to missingModsToWorkshopDeps where Dictionary<ulong, List<ulong>> is the depender -> the missing deps of the depender
                 var missingDeps = ModToAllDependencies[mod.m_PublishedFileId]
@@ -196,12 +198,12 @@ public class PluginHandlerPatches {
                     .ToList();
                 if (missingDeps.Count <= 0) return;
                 
-                Logger.LogWarning($"Mod {SubscribedItemsDetails[mod]} is missing dependencies {string.Join(", ", missingDeps)}");
+                Logger.Logger.LogWarning($"Mod {SubscribedItemsDetails[mod]} is missing dependencies {string.Join(", ", missingDeps)}");
                 missingModsToWorkshopDeps[(ulong)mod] = missingDepsAsSteamUGCDetails;
             });
-            Logger.Log("Mods checked");
+            Logger.Logger.Log("Mods checked");
             
-            Logger.Log("Showing modals if needed");
+            Logger.Logger.Log("Showing modals if needed");
             missingModsToWorkshopDeps.ForEach(kv =>
             {
                 var depender = kv.Key;
@@ -224,14 +226,14 @@ public class PluginHandlerPatches {
                 );
             });
 
-            Logger.Log("Loading mods");
+            Logger.Logger.Log("Loading mods");
             var priorityToMods = LoadOrder.OrderBy(kv => kv.Key).ToArray();
             
             foreach (var (priority, mods) in priorityToMods) {
-                Logger.Log($"Loading all mods with priority {priority}");
+                Logger.Logger.Log($"Loading all mods with priority {priority}");
                 
                 foreach (var modId in mods) {
-                    Logger.Log($"Loading mod {modId}");
+                    Logger.Logger.Log($"Loading mod {modId}");
                     
                     if (!PluginSubscribed.Load((PublishedFileId_t)(modId), existingPlugins, out var result)) { continue; }
                     
@@ -239,9 +241,17 @@ public class PluginHandlerPatches {
                     PluginHandler.needsHashRefresh = true;
                 }
             }
-            Logger.Log("Mods loaded");
+            Logger.Logger.Log("Mods loaded");
         }
         catch (Exception) { /* ignored */ } // we don't want to crash the game and unhandled exceptions in async methods will crash the game
+    }
+    
+    [HarmonyPatch(nameof(PluginHandler.LoadAuthoredSteamworksPlugins))]
+    [HarmonyPrefix]
+    public static bool ShutUpAuthoredPluginsPatch(ref Task<List<PluginPublished>> __result) {
+        __result = Task.FromResult(new List<PluginPublished>());
+        
+        return false;
     }
 
     /// <summary>
@@ -291,7 +301,7 @@ public class PluginPatches {
     public static bool AvoidRepatch(string dllPath, ref bool __result) {
         if (!dllPath.EndsWith("INeedWorkshopDeps.preload.dll")) { return true; }
         
-        Logger.Log("Found our own DLL, not loading it");
+        Logger.Logger.Log("Found our own DLL, not loading it");
         __result = false;
         return false;
     }
