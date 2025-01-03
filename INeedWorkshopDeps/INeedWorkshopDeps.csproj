@@ -24,6 +24,9 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="scmdrelease\" />
+    </ItemGroup>
 
     <Target Name="CopyOutputFileToGame" AfterTargets="Build" Condition="$(Configuration) != 'SteamWCopy'">
         <Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll" DestinationFiles="$(CWDir)\Plugins\$(AssemblyName)\$(AssemblyName).preload.dll" Retries="60"/>

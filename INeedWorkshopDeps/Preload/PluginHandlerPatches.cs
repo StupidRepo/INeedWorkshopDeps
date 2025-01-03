@@ -110,6 +110,10 @@ public class PluginHandlerPatches {
     /// </summary>
     private static readonly Dictionary<PublishedFileId_t, SteamUGCDetails_t> SubscribedItemsDetails = new();
     
+    private static bool ShowAsAuthored(ulong modId) {
+        return SubscribedItems.All(sub => (ulong)sub != modId);
+    }
+    
     /// <summary>
     /// Overwrite the loading of subscribed steamworks plugins
     /// </summary>
@@ -164,6 +168,7 @@ public class PluginHandlerPatches {
         {
             // Get the details of all subscribed items
             Logger.Logger.Log("Getting details of all subscribed items");
+            Logger.Logger.Log($"Steam is init? {SteamAPI.Init()}");
             var ugcReq = SteamUGC.CreateQueryUGCDetailsRequest(SubscribedItems, (uint)SubscribedItems.Length);
             var ugcResult = await SteamUGC.SendQueryUGCRequest(ugcReq).ToAsync<SteamUGCQueryCompleted_t>();
             for (uint i = 0; i < ugcResult.m_unNumResultsReturned; i++)
@@ -178,64 +183,73 @@ public class PluginHandlerPatches {
             Logger.Logger.Log("Details of all subscribed items gotten");
 
             // Get steam to resolve workshop mods
-            Logger.Logger.Log("Asking steam to resolve workshop mods");
-            var resolvedSteamWorkshopDeps = await AskSteamToResolveWorkshopMods(AllDependencies);
-            var allMissingWorkshopDeps = resolvedSteamWorkshopDeps
-                .Where(dep => SubscribedItems.All(sub => sub != dep.m_nPublishedFileId)).ToList();
-
-            Logger.Logger.Log("Steam resolved workshop mods");
-            Logger.Logger.LogWarning(allMissingWorkshopDeps.Count > 0
-                ? $"Missing dependencies: {string.Join(", ", allMissingWorkshopDeps.Select(dep => dep.m_rgchTitle))}"
-                : "No missing dependencies");
-
-            // Check if the mods are subscribed to
-            Logger.Logger.Log("Checking each subscribed mod to see if it requires deps");
-            var missingModsToWorkshopDeps = new Dictionary<ulong, List<SteamUGCDetails_t>>();
-            SubscribedItems.ForEach(mod =>
+            Logger.Logger.Log("Asking steam to resolve workshop mods if needed");
+            if (AllDependencies.Count != 0)
             {
-                Logger.Logger.Log($"Checking mod {mod}");
-                // for each depender requiring dependencies, check if the dependencies are missing
-                // if there are, add it to missingModsToWorkshopDeps where Dictionary<ulong, List<ulong>> is the depender -> the missing deps of the depender
-                var missingDeps = ModToAllDependencies[mod.m_PublishedFileId]
-                    .Where(dep => allMissingWorkshopDeps.Any(missingDep => (ulong)missingDep.m_nPublishedFileId == dep))
-                    .ToList();
-                var missingDepsAsSteamUGCDetails = resolvedSteamWorkshopDeps
-                    .Where(dep => missingDeps.Contains((ulong)dep.m_nPublishedFileId))
-                    .ToList();
-                if (missingDeps.Count <= 0) return;
+                var resolvedSteamWorkshopDeps = await AskSteamToResolveWorkshopMods(AllDependencies);
+                var allMissingWorkshopDeps = resolvedSteamWorkshopDeps
+                    .Where(dep => SubscribedItems.All(sub => sub != dep.m_nPublishedFileId)).ToList();
 
-                Logger.Logger.LogWarning(
-                    $"Mod {SubscribedItemsDetails[mod]} is missing dependencies {string.Join(", ", missingDeps)}");
-                missingModsToWorkshopDeps[(ulong)mod] = missingDepsAsSteamUGCDetails;
-            });
-            Logger.Logger.Log("Mods checked");
+                Logger.Logger.Log("Steam resolved workshop mods");
+                Logger.Logger.LogWarning(allMissingWorkshopDeps.Count > 0
+                    ? $"Missing dependencies: {string.Join(", ", allMissingWorkshopDeps.Select(dep => dep.m_rgchTitle))}"
+                    : "No missing dependencies");
 
-            Logger.Logger.Log("Showing modals if needed");
-            missingModsToWorkshopDeps.ForEach(kv =>
-            {
-                var depender = kv.Key;
-                var missingDeps = kv.Value;
-                var isLast = (depender == missingModsToWorkshopDeps.Last().Key);
-                ToastUtilities.EnqueueToast(
-                    SubscribedItemsDetails[new PublishedFileId_t(depender)].m_rgchTitle,
-                    $"{SubscribedItemsDetails[new PublishedFileId_t(depender)].m_rgchTitle} is missing dependencies:\n" +
-                    string.Join("\n", missingDeps.Select(dep => $"{dep.m_rgchTitle} (ID: {dep.m_nPublishedFileId})"))
-                    + "\n\nYou can either:\n- Ignore this and the mod will not be loaded\n- Subscribe to the missing mods",
-                    [
-                        new ModalOption("Ignore" + (isLast ? " and don't quit" : "")),
-                        new ModalOption("Subscribe to missing" + (isLast ? " and quit" : ""), () =>
-                        {
-                            missingDeps.ForEach(dep => SteamUGC.SubscribeItem(dep.m_nPublishedFileId));
+                // Check if the mods are subscribed to
+                Logger.Logger.Log("Checking each subscribed mod to see if it requires deps");
+                var missingModsToWorkshopDeps = new Dictionary<ulong, List<SteamUGCDetails_t>>();
+                SubscribedItems.ForEach(mod =>
+                {
+                    Logger.Logger.Log($"Checking mod {mod}");
+                    // for each depender requiring dependencies, check if the dependencies are missing
+                    // if there are, add it to missingModsToWorkshopDeps where Dictionary<ulong, List<ulong>> is the depender -> the missing deps of the depender
+                    var missingDeps = ModToAllDependencies[mod.m_PublishedFileId]
+                        .Where(dep =>
+                            allMissingWorkshopDeps.Any(missingDep => (ulong)missingDep.m_nPublishedFileId == dep))
+                        .ToList();
+                    var missingDepsAsSteamUGCDetails = resolvedSteamWorkshopDeps
+                        .Where(dep => missingDeps.Contains((ulong)dep.m_nPublishedFileId))
+                        .ToList();
+                    if (missingDeps.Count <= 0) return;
 
-                            // if we are last in the list, restart the game
-                            if (isLast)
+                    Logger.Logger.LogWarning(
+                        $"Mod {SubscribedItemsDetails[mod]} is missing dependencies {string.Join(", ", missingDeps)}");
+                    missingModsToWorkshopDeps[(ulong)mod] = missingDepsAsSteamUGCDetails;
+                });
+                Logger.Logger.Log("Mods checked");
+
+                Logger.Logger.Log("Showing modals if needed");
+                missingModsToWorkshopDeps.ForEach(kv =>
+                {
+                    var depender = kv.Key;
+                    var missingDeps = kv.Value;
+                    var isLast = (depender == missingModsToWorkshopDeps.Last().Key);
+                    ToastUtilities.EnqueueToast(
+                        SubscribedItemsDetails[new PublishedFileId_t(depender)].m_rgchTitle,
+                        $"{SubscribedItemsDetails[new PublishedFileId_t(depender)].m_rgchTitle} is missing dependencies:\n" +
+                        string.Join("\n",
+                            missingDeps.Select(dep => $"{dep.m_rgchTitle} (ID: {dep.m_nPublishedFileId})"))
+                        + "\n\nYou can either:\n- Ignore this and the mod will not be loaded\n- Subscribe to the missing mods",
+                        [
+                            new ModalOption("Ignore" + (isLast ? " and don't quit" : "")),
+                            new ModalOption("Subscribe to missing" + (isLast ? " and quit" : ""), () =>
                             {
-                                RestartGame();
-                            }
-                        }),
-                    ]
-                );
-            });
+                                missingDeps.ForEach(dep => SteamUGC.SubscribeItem(dep.m_nPublishedFileId));
+
+                                // if we are last in the list, restart the game
+                                if (isLast)
+                                {
+                                    RestartGame();
+                                }
+                            }),
+                        ]
+                    );
+                });
+            }
+            else
+            {
+                Logger.Logger.Log("WE HAVE NO DEPS TO RESOLVE!");
+            }
 
             Logger.Logger.Log("Loading mods");
             var priorityToMods = LoadOrder.OrderBy(kv => kv.Key).ToArray();
@@ -248,12 +262,12 @@ public class PluginHandlerPatches {
                 {
                     Logger.Logger.Log($"Loading mod {modId}");
 
-                    if (!PluginSubscribed.Load((PublishedFileId_t)(modId), existingPlugins, out var result))
+                    if (!PluginSubscribed.Load((PublishedFileId_t)(modId), existingPlugins, out var subbedModResult))
                     {
                         continue;
                     }
 
-                    __result.Add(result);
+                    __result.Add(subbedModResult);
                     PluginHandler.needsHashRefresh = true;
                 }
             }
@@ -265,15 +279,22 @@ public class PluginHandlerPatches {
             Logger.Logger.LogError("WOAHHHHH! An error occured when loading thingies and sorting mod deps. None (or some) mods have been loaded!");
             Logger.Logger.LogError(e.ToString());
         }
-    }
-    
-    [HarmonyPatch(nameof(PluginHandler.LoadAuthoredSteamworksPlugins))]
-    [HarmonyPrefix]
-    public static bool ShutUpAuthoredPluginsPatch(ref Task<List<PluginPublished>> __result) {
-        __result = Task.FromResult(new List<PluginPublished>());
         
-        return false;
+        // do one more hash refresh for good luck xoxo
+        PluginHandler.needsHashRefresh = true;
+        Logger.Logger.Log(PluginHandler.CheckPlugins().ToString());
     }
+    //
+    // [HarmonyPatch(nameof(PluginHandler.LoadAuthoredSteamworksPlugins))]
+    // [HarmonyPostfix]
+    // public static async void ShutUpAuthoredPluginsPatch(Task<List<PluginPublished>> __result)
+    // {
+    //     var lmao = await __result;
+    //     lmao.RemoveAll(plugin => plugin.PublishedFileId != null && !ShowAsAuthored((ulong)plugin.PublishedFileId));
+    //     
+    //     Logger.Logger.Log(string.Join(", ", lmao.Select(plugin => plugin.DisplayName)));
+    //     __result = Task.FromResult(lmao);
+    // }
 
     /// <summary>
     /// Ask steam to resolve workshop mods, this is an async method and should be awaited.
@@ -287,9 +308,11 @@ public class PluginHandlerPatches {
             neededMods.Select(dep => new PublishedFileId_t(dep)).ToArray(), 
             (uint)neededMods.Count
         );
-        var result = await SteamUGC.SendQueryUGCRequest(ugcDetailsRequest).ToAsync<SteamUGCQueryCompleted_t>();        
-        for (uint i = 0; i < result.m_unNumResultsReturned; i++) {
+        var ugcReq = SteamUGC.CreateQueryUGCDetailsRequest(SubscribedItems, (uint)SubscribedItems.Length);
+        var ugcResult = await SteamUGC.SendQueryUGCRequest(ugcReq).ToAsync<SteamUGCQueryCompleted_t>();
+        for (uint i = 0; i < ugcResult.m_unNumResultsReturned; i++) {
             if (SteamUGC.GetQueryUGCResult(ugcDetailsRequest, i, out var details)) {
+                Logger.Logger.Log($"Resolved mod {details.m_rgchTitle}");
                 resolvedMods.Add(details);
             }
         }
