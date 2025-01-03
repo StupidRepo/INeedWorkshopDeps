@@ -1,6 +1,9 @@
 # INeedWorkshopDeps
 A Content Warning mod which allows Steam Workshop mods to have dependencies on other Steam Workshop mods and makes sure they load in order! 
 
+# THIS MOD IS STUPID AND SO BAD PLEASE DON'T USE IT
+sorry i really tried i promise but hey some things just don't work out well :/
+
 ## How to use as a player
 1. Subscribe to any mod you want. If it uses INeedWorkshopDeps, and the dev of the mod you want is not brain-dead, you
    will see this:
