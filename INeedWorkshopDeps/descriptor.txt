@@ -6,8 +6,5 @@
 	"previewfile"		"C:\\Users\\Brad\\RiderProjects\\INeedWorkshopDeps\\INeedWorkshopDeps\\preview.png"
 	"visibility"		"0"
 	"title"		        "INeedWorkshopDeps"
-	"description"		"INeedWorkshopDeps is a handy mod for workshop mods to depend on other workshop mods with maximum compatibility! :D
-	
-	[url=https://github.com/StupidRepo/INeedWorkshopDeps]GitHub Documentation[/url]"
-	"changenote"		"Update to 1.1 :P"
+	"changenote"		"Testing update :o"
 }

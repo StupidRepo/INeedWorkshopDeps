@@ -284,18 +284,6 @@ public class PluginHandlerPatches {
         PluginHandler.needsHashRefresh = true;
         Logger.Logger.Log(PluginHandler.CheckPlugins().ToString());
     }
-    //
-    // [HarmonyPatch(nameof(PluginHandler.LoadAuthoredSteamworksPlugins))]
-    // [HarmonyPostfix]
-    // public static async void ShutUpAuthoredPluginsPatch(Task<List<PluginPublished>> __result)
-    // {
-    //     var lmao = await __result;
-    //     lmao.RemoveAll(plugin => plugin.PublishedFileId != null && !ShowAsAuthored((ulong)plugin.PublishedFileId));
-    //     
-    //     Logger.Logger.Log(string.Join(", ", lmao.Select(plugin => plugin.DisplayName)));
-    //     __result = Task.FromResult(lmao);
-    // }
-
     /// <summary>
     /// Ask steam to resolve workshop mods, this is an async method and should be awaited.
     /// What resolving means is that we ask steam to get the details of the mods we need.
